@@ -30,7 +30,7 @@
   FACE = 'FRONT' OFFSET = 0.155 /
 &VENT TYPE = 'WALL' ID = 'Grill Right' COMP_IDS = 'Compartment', 'Large Cabinet', BOTTOM = 1.97 HEIGHT = 0.03, WIDTH = 0.61
   FACE = 'RIGHT' OFFSET = 0.155 /
-&VENT TYPE = 'WALL' ID = 'Gilll Rear' COMP_IDS = 'Compartment', 'Large Cabinet', BOTTOM = 1.97 HEIGHT = 0.03, WIDTH = 0.61
+&VENT TYPE = 'WALL' ID = 'Grill Rear' COMP_IDS = 'Compartment', 'Large Cabinet', BOTTOM = 1.97 HEIGHT = 0.03, WIDTH = 0.61
   FACE = 'REAR' OFFSET = 0.155 /
 &VENT TYPE = 'WALL' ID = 'Grill Left' COMP_IDS = 'Compartment', 'Large Cabinet', BOTTOM = 1.97 HEIGHT = 0.03, WIDTH = 0.61
   FACE = 'LEFT' OFFSET = 0.155 /

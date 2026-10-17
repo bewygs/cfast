@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = 'ICFMP 3 Test 3 Leakage vents and mechanical ventilation' /
+&HEAD VERSION = 7600, TITLE = 'ICFMP 2 Test 3 Leakage vents and mechanical ventilation' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 600 PRINT = 10 SMOKEVIEW = 10 SPREADSHEET = 1 / 

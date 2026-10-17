@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = 'Ul NIST Vents Test 1' /
+&HEAD VERSION = 7600, TITLE = 'UL NIST Vents Test 1' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 4500 PRINT = 50 SMOKEVIEW = 30 SPREADSHEET = 30 / 

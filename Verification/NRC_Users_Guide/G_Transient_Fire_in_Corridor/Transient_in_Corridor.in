@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = 'MCC Fire Corridor' /
+&HEAD VERSION = 7600, TITLE = 'Transient Fire in Corridor' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 3600 PRINT = 300 SMOKEVIEW = 10 SPREADSHEET = 10 / 

@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = 'FM Test 5' /
+&HEAD VERSION = 7600, TITLE = 'FM Test 7' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 900 PRINT = 10 SMOKEVIEW = 10 SPREADSHEET = 10 / 

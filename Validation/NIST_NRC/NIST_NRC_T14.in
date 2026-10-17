@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = '"BE 14, Test 3, XPE Cable, Heptane, Door Open, MV Off"' /
+&HEAD VERSION = 7600, TITLE = '"BE 3, Test 14, XPE Cable, Heptane, Door Open, MV Off"' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 1800 PRINT = 10 SMOKEVIEW = 10 SPREADSHEET = 1 / 

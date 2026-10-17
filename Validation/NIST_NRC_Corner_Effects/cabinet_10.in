@@ -1,4 +1,4 @@
-&HEAD VERSION = 7600, TITLE = 'NIST NRC Cabinet Test 9' /
+&HEAD VERSION = 7600, TITLE = 'NIST NRC Cabinet Test 10' /
  
 !! Scenario Configuration 
 &TIME SIMULATION = 4200 PRINT = 60 SMOKEVIEW = 15 SPREADSHEET = 15 / 
