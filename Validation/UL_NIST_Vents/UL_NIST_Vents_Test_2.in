@@ -27,7 +27,7 @@
 &VENT TYPE = 'CEILING' ID = 'CeilFloorVent_1' COMP_IDS = 'OUTSIDE', 'Compartment 1' AREA = 1, SHAPE = 'SQUARE' 
       CRITERION = 'TIME' T = 0, 569, 571 F = 0, 0, 1 OFFSETS = 2.55, 2.15 /
 &VENT TYPE = 'CEILING' ID = 'CeilFloorVent_2' COMP_IDS = 'OUTSIDE', 'Compartment 1' AREA = 1, SHAPE = 'SQUARE' 
-      CRITERION = 'TIME' T = 0, 819, 871 F = 0, 0, 1 OFFSETS = 3.55, 2.15 /
+      CRITERION = 'TIME' T = 0, 819, 821 F = 0, 0, 1 OFFSETS = 3.55, 2.15 /
  
 !! Fires 
 &FIRE ID = 'UL_NIST_Test1'  COMP_ID = 'Compartment 1', FIRE_ID = 'UL_NIST_Test1_Fire'  LOCATION = 0, 4.3 / 

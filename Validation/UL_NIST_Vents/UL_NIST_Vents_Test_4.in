@@ -35,12 +35,12 @@
 &TABL ID = 'UL_NIST_Test1_Fire' LABELS = 'TIME', 'HRR' , 'HEIGHT' , 'AREA' , 'CO_YIELD' , 'SOOT_YIELD' , 'HCN_YIELD' , 'HCL_YIELD' , 'TRACE_YIELD'  /
 &TABL ID = 'UL_NIST_Test1_Fire', DATA = 0, 0, 0.39, 0.64, 0, 0, 0, 0, 0 /
 &TABL ID = 'UL_NIST_Test1_Fire', DATA = 10, 1011, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 2484, 1011, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 2700, 470, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 3850, 470, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 4000, 2188, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 4294, 2188, 0.39, 0.64, 0, 0, 0, 0, 0 /
-&TABL ID = 'UL_NIST_Test1_Fire', DATA = 4300, 0, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 1335, 1011, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 1340, 470, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 2925, 470, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 2930, 2188, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 4025, 2188, 0.39, 0.64, 0, 0, 0, 0, 0 /
+&TABL ID = 'UL_NIST_Test1_Fire', DATA = 4100, 0, 0.39, 0.64, 0, 0, 0, 0, 0 /
  
 !! Devices
 &DEVC ID = 'Targ 1' COMP_ID = 'Compartment 1' LOCATION = 0.9, 2.15, 2.1 TYPE = 'PLATE' MATL_ID = 'TC' SURFACE_ORIENTATION = 'FLOOR'

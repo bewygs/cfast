@@ -32,7 +32,7 @@
   CRITERION = 'TIME' T = 0, 2400, 6000 F = 0, 0, 0 FACE = 'RIGHT' OFFSET = 0.7366 /
  
 !! Ceiling and Floor Vents 
-&VENT TYPE = 'FLOOR' ID = 'CeilFloorVent_1' COMP_IDS = 'Comp 2', 'Comp 1' AREA = 0.01, SHAPE = 'SQUARE' 
+&VENT TYPE = 'FLOOR' ID = 'CeilFloorVent_1' COMP_IDS = 'Comp 2', 'Comp 1' AREA = 0.01, SHAPE = 'ROUND'
       CRITERION = 'TIME' T = 0, 1199, 1200, 6000 F = 0, 0, 1, 1 OFFSETS = 0.8438007, 0.8692007 /
  
 !! Fires 

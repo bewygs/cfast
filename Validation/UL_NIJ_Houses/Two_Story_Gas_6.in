@@ -83,7 +83,7 @@
  
 !! Wall Vents
 &VENT TYPE = 'WALL' ID = 'Front Door' COMP_IDS = 'Foyer High' 'OUTSIDE' , BOTTOM = 0 HEIGHT = 2.05, WIDTH = 0.88
-  CRITERION = 'TIME' T = 0, 1200, 1200 F = 0, 0, 1 FACE = 'FRONT' OFFSET = 0.34 /
+  CRITERION = 'TIME' T = 0, 1200, 1201 F = 0, 0, 1 FACE = 'FRONT' OFFSET = 0.34 /
 &VENT TYPE = 'WALL' ID = 'Kitchen Door' COMP_IDS = 'Kitchen' 'OUTSIDE' , BOTTOM = 0 HEIGHT = 2.05, WIDTH = 1.78
   CRITERION = 'TIME' T = 0, 1800 F = 0, 0 FACE = 'REAR' OFFSET = 4.17 /
 &VENT TYPE = 'WALL' ID = 'Laundry Room Door' COMP_IDS = 'K LR Hall', 'Laundry Room', BOTTOM = 0 HEIGHT = 2.05, WIDTH = 0.75

@@ -27,7 +27,7 @@
  
 !! Wall Vents
 &VENT TYPE = 'WALL' ID = 'WallVent_1' COMP_IDS = 'Compartment 1' 'OUTSIDE' , BOTTOM = 0 HEIGHT = 2, WIDTH = 2
-  FACE = 'FRONT' OFFSET = 2.58 /
+  FACE = 'LEFT' OFFSET = 2.58 /
  
 !! Mechanical Vents
 &VENT TYPE = 'MECHANICAL' ID = 'MechanicalVent_1' COMP_IDS = 'OUTSIDE', 'Compartment 1'

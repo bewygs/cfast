@@ -147,7 +147,7 @@
 &VENT TYPE = 'WALL' ID = 'Window K' COMP_IDS = 'Bedroom 3' 'OUTSIDE' , BOTTOM = 0.61 HEIGHT = 1.46, WIDTH = 1.77
   CRITERION = 'TIME' T = 0, 1260, 1261 F = 0, 0, 1 FACE = 'FRONT' OFFSET = 0.81 /
 &VENT TYPE = 'WALL' ID = 'Window L' COMP_IDS = 'Bedroom 4' 'OUTSIDE' , BOTTOM = 0.61 HEIGHT = 1.46, WIDTH = 1.77
-  CRITERION = 'TIME' T = 0, 1200, 1201 F = 0, 0, 1 FACE = 'FRONT' OFFSET = 0.66 /
+  CRITERION = 'TIME' T = 0, 1320, 1321 F = 0, 0, 1 FACE = 'FRONT' OFFSET = 0.66 /
 &VENT TYPE = 'WALL' ID = 'Window M' COMP_IDS = 'WIC' 'OUTSIDE' , BOTTOM = 0.61 HEIGHT = 1.46, WIDTH = 0.85
   CRITERION = 'TIME' T = 0, 1800 F = 0, 0 FACE = 'FRONT' OFFSET = 0.545 /
 &VENT TYPE = 'WALL' ID = 'Window N' COMP_IDS = 'Family Room', 'Upstairs Hallway', BOTTOM = 3.45 HEIGHT = 1.26, WIDTH = 1.88
@@ -164,7 +164,7 @@
 &TABL ID = 'Gas Burner Fire', DATA = 0, 0, 0.6, 0, 0, 0.001, 0, 0, 0 /
 &TABL ID = 'Gas Burner Fire', DATA = 5, 500, 0.6, 0.36, 0, 0.001, 0, 0, 0 /
 &TABL ID = 'Gas Burner Fire', DATA = 1200, 500, 0.6, 0.36, 0, 0.001, 0, 0, 0 /
-&TABL ID = 'Gas Burner Fire', DATA = 1505, 0, 0.6, 0, 0, 0.001, 0, 0, 0 /
+&TABL ID = 'Gas Burner Fire', DATA = 1205, 0, 0.6, 0, 0, 0.001, 0, 0, 0 /
  
 !! Devices
 &DEVC ID = '8TC' COMP_ID = 'Family Room' LOCATION = 2.11, 1.97, 5.195 TYPE = 'PLATE' MATL_ID = 'TC' SURFACE_ORIENTATION = 'CEILING'
