@@ -1,0 +1,12 @@
+&HEAD VERSION = 7500, TITLE = 'fire location default' /
+!! Audit A10 - FIRE LOCATION default is (0,0) (corner), the User's Guide says compartment center (input_namelist.f90:1278).
+!! Expected (center 2.5, 2.5): ULT_1 = 127.6 C, PLUM_1 = 0.857 kg/s at 240 s.
+!! Observed on master: ULT_1 = 141.4 C, PLUM_1 = 0.639 kg/s (identical to LOCATION = 0, 0).
+&TIME SIMULATION = 600 PRINT = 60 SMOKEVIEW = 60 SPREADSHEET = 60 /
+&INIT /
+&MATL ID = 'CONCRETE' MATERIAL = 'Concrete', CONDUCTIVITY = 1.75 DENSITY = 2200 SPECIFIC_HEAT = 1, THICKNESS = 0.15 EMISSIVITY = 0.94 /
+&COMP ID = 'Comp 1' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'CONCRETE' WALL_MATL_ID = 'CONCRETE' FLOOR_MATL_ID = 'CONCRETE' FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Comp 1' 'OUTSIDE' TOP = 2, BOTTOM = 0, WIDTH = 1 FACE = 'FRONT' /
+&FIRE ID = 'F1' COMP_ID = 'Comp 1' FIRE_ID = 'F1_fire'  /
+&CHEM ID = 'F1_fire' CARBON = 1 HYDROGEN = 4 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 300 AREA = 0.5 /
+&TAIL /

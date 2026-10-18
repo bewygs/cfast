@@ -1,0 +1,14 @@
+&HEAD VERSION = 7500, TITLE = 'surface orientation' /
+!! Audit A11 - SURFACE_ORIENTATION wall names map to normals rotated 90 degrees (initialization.f90:843-850).
+!! Fire between the target and the front wall (y = 0).
+!! Expected per guide (front wall at y = 0): same fluxes as NORMAL = 0, -1, 0, TRGFLXI_1 = 5.63 kW/m2 at 60 s.
+!! Observed on master: 4.04 kW/m2, identical to NORMAL = 1, 0, 0 (right wall).
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 60 SPREADSHEET = 60 /
+&INIT /
+&MATL ID = 'STEEL' MATERIAL = 'Steel', CONDUCTIVITY = 48 DENSITY = 7854 SPECIFIC_HEAT = 0.559, THICKNESS = 0.005 EMISSIVITY = 0.9 /
+&COMP ID = 'Comp 1' DEPTH = 6 HEIGHT = 3 WIDTH = 6 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Comp 1' 'OUTSIDE' TOP = 2, BOTTOM = 0, WIDTH = 1 FACE = 'REAR' /
+&DEVC ID = 'Targ' COMP_ID = 'Comp 1' TYPE = 'PLATE' MATL_ID = 'STEEL' LOCATION = 3, 3, 0.3 SURFACE_ORIENTATION = 'FRONT WALL' /
+&FIRE ID = 'F1' COMP_ID = 'Comp 1' FIRE_ID = 'F1_fire' LOCATION = 3, 1 /
+&CHEM ID = 'F1_fire' CARBON = 1 HYDROGEN = 4 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 300 AREA = 0.5 /
+&TAIL /

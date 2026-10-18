@@ -1,0 +1,19 @@
+&HEAD VERSION = 7700, TITLE = 'Vent jet fire in a corridor, with and without a negligible leak in the fire room' /
+!! Audit A04 - leakage_flow writes vss/vsa of wall vent i (flowhorizontal.f90:206-207).
+!! Fire room has a negligible wall leak (LEAK_AREA_RATIO 1E-6). Pair with A04_leakage_overwrites_vent_jet_noleak.in.
+!! Expected: results equal to the no-leak file within solver tolerance.
+!! Observed on master at 280 s: DJET_2 616 kW (no leak: 810 kW), DJET_Outside 157 kW (no leak: 4.3 kW), ULT_2 384 C (422 C).
+&TIME SIMULATION = 900 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'CONC' MATERIAL = 'Concrete' CONDUCTIVITY = 1.75 DENSITY = 2200 SPECIFIC_HEAT = 1, THICKNESS = 0.15 EMISSIVITY = 0.94 /
+&COMP ID = 'Fire Room' DEPTH = 4 HEIGHT = 2.4 WIDTH = 4 CEILING_MATL_ID = 'CONC' WALL_MATL_ID = 'CONC' FLOOR_MATL_ID = 'CONC' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 LEAK_AREA_RATIO = 1.0E-6, 0 /
+&COMP ID = 'Corridor' DEPTH = 4 HEIGHT = 2.4 WIDTH = 8 CEILING_MATL_ID = 'CONC' WALL_MATL_ID = 'CONC' FLOOR_MATL_ID = 'CONC' ORIGIN = 4, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door 1' COMP_IDS = 'Fire Room' 'Corridor', BOTTOM = 0 HEIGHT = 2, WIDTH = 0.8 FACE = 'RIGHT' OFFSET = 1.6 /
+&VENT TYPE = 'WALL' ID = 'Door 2' COMP_IDS = 'Corridor' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1.6 FACE = 'RIGHT' OFFSET = 1.2 /
+&FIRE ID = 'Fire' COMP_ID = 'Fire Room', FIRE_ID = 'Fuel' LOCATION = 2, 2 /
+&CHEM ID = 'Fuel' CARBON = 3 CHLORINE = 0 HYDROGEN = 8 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 46000 RADIATIVE_FRACTION = 0.3 /
+&TABL ID = 'Fuel' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA', 'SOOT_YIELD', 'CO_YIELD' /
+&TABL ID = 'Fuel', DATA = 0, 0, 0, 1, 0.01, 0.005 /
+&TABL ID = 'Fuel', DATA = 300, 4000, 0, 1, 0.01, 0.005 /
+&TABL ID = 'Fuel', DATA = 900, 4000, 0, 1, 0.01, 0.005 /
+&TAIL /

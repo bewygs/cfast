@@ -1,0 +1,12 @@
+&HEAD VERSION = 7500, TITLE = 'mech vent defaults' /
+!! Audit B03 - mechanical vent without AREAS (guide default 0.25 m2) divides by a zero diffuser height.
+!! Observed: debug build stops with SIGFPE in tanhsmooth (utilities.f90:88) called from mv_fraction (flowfan.f90:267).
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 60 SPREADSHEET = 60 /
+&INIT /
+&COMP ID = 'Comp 1' DEPTH = 5 HEIGHT = 3 WIDTH = 5 FLOW_COEFFICIENT = 0 /
+&COMP ID = 'Comp 2' DEPTH = 5 HEIGHT = 3 WIDTH = 5 ORIGIN = 5, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Comp 1' 'OUTSIDE' TOP = 2, BOTTOM = 0, WIDTH = 1 FACE = 'FRONT' /
+&VENT TYPE = 'MECHANICAL' ID = 'Fan' COMP_IDS = 'Comp 1', 'OUTSIDE' FLOW = 0.1 HEIGHTS = 2.5, 2.5 /
+&FIRE ID = 'F1' COMP_ID = 'Comp 1' FIRE_ID = 'F1_fire' LOCATION = 2.5, 2.5 /
+&CHEM ID = 'F1_fire' CARBON = 1 HYDROGEN = 4 HEAT_OF_COMBUSTION = 50000 HRR = 100 AREA = 0.5 /
+&TAIL /

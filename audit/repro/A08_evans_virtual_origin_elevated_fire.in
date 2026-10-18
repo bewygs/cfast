@@ -1,0 +1,18 @@
+&HEAD VERSION = 7700, TITLE = 'Plume centerline temperature above an elevated fire' /
+!! Audit A08 - Evans virtual origin mixes absolute interface height and relative z0 (fire.f90:1097).
+!! 300 kW fire with base at 1.0 m; plate target on the plume axis at 3.9 m.
+!! Observed on master at 120 s: TRGGAST_1 237.4 C. With heights measured from the fire base (Tech Ref eq. virtual_origin_modified): 263.7 C.
+!! Control: with the fire base at 0 m both versions give 157.39 C.
+&TIME SIMULATION = 300 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'GYP' MATERIAL = 'Gypsum' CONDUCTIVITY = 0.16 DENSITY = 480 SPECIFIC_HEAT = 1, THICKNESS = 0.016 EMISSIVITY = 0.9 /
+&COMP ID = 'Room' DEPTH = 6 HEIGHT = 4 WIDTH = 6 CEILING_MATL_ID = 'GYP' WALL_MATL_ID = 'GYP' FLOOR_MATL_ID = 'GYP' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Room' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1 FACE = 'RIGHT' OFFSET = 2.5 /
+&FIRE ID = 'Fire' COMP_ID = 'Room', FIRE_ID = 'Fuel' LOCATION = 3, 3 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
+&TABL ID = 'Fuel' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA' /
+&TABL ID = 'Fuel', DATA = 0, 300, 1.0, 0.25 /
+&TABL ID = 'Fuel', DATA = 300, 300, 1.0, 0.25 /
+&DEVC ID = 'Axis' COMP_ID = 'Room' LOCATION = 3, 3, 3.9 TYPE = 'PLATE' MATL_ID = 'GYP' SURFACE_ORIENTATION = 'FLOOR' /
+&DEVC ID = 'HD' COMP_ID = 'Room' LOCATION = 3, 3.5, 3.9 TYPE = 'HEAT_DETECTOR' SETPOINT = 74 RTI = 100 /
+&TAIL /

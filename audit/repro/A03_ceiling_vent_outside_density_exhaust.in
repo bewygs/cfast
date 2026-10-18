@@ -1,0 +1,11 @@
+&HEAD VERSION = 7700, TITLE = 'Roof vent to outside as the only make-up air path' /
+!! Audit A03 - outside density above a ceiling vent computed from the offset pressure (flowvertical.f90:258).
+!! Room whose only make-up air path is a 1 m2 roof vent; exhaust fan 0.5 m3/s.
+!! Expected: depressurization about rho/2 (V/(0.68 A))**2 = 0.32 Pa and full fan flow 0.60 kg/s.
+!! Observed on master: PRS_1 = -249.4 Pa, fan throttled to 0.309 kg/s. With the fix: -0.323 Pa, 0.598 kg/s.
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&COMP ID = 'Room' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'OFF' WALL_MATL_ID = 'OFF' FLOOR_MATL_ID = 'OFF' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'CEILING' ID = 'Roof' COMP_IDS = 'OUTSIDE', 'Room' AREA = 1, SHAPE = 'SQUARE' OFFSETS = 2.5, 2.5 /
+&VENT TYPE = 'MECHANICAL' ID = 'Exhaust' COMP_IDS = 'Room', 'OUTSIDE' AREAS = 0.5, 0.5 HEIGHTS = 1, 1 FLOW = 0.5 CUTOFFS = 200, 300 OFFSETS = 1, 1 /
+&TAIL /

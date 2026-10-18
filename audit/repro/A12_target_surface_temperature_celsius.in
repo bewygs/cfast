@@ -1,0 +1,14 @@
+&HEAD VERSION = 7500, TITLE = 'target surface temperature units' /
+!! Audit A12 - SURFACE_TEMPERATURE is used as kelvin, the guide says Celsius (input_namelist.f90:784).
+!! SURFACE_TEMPERATURE = 20 (ambient, in Celsius per the guide).
+!! Expected: same gauge flux as the default (ambient), TRGFLXTG_1 = 12.01 kW/m2 at 120 s.
+!! Observed on master: 15.17 kW/m2 (gauge treated as a 20 K surface).
+&TIME SIMULATION = 300 PRINT = 60 SMOKEVIEW = 60 SPREADSHEET = 60 /
+&INIT INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'STEEL' MATERIAL = 'Steel', CONDUCTIVITY = 48 DENSITY = 7854 SPECIFIC_HEAT = 0.559, THICKNESS = 0.005 EMISSIVITY = 0.9 /
+&COMP ID = 'Comp 1' DEPTH = 5 HEIGHT = 3 WIDTH = 5 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Comp 1' 'OUTSIDE' TOP = 2, BOTTOM = 0, WIDTH = 1 FACE = 'FRONT' /
+&DEVC ID = 'Targ' COMP_ID = 'Comp 1' TYPE = 'PLATE' MATL_ID = 'STEEL' LOCATION = 1.5, 2.5, 1.0 NORMAL = 1, 0, 0 SURFACE_TEMPERATURE = 20 /
+&FIRE ID = 'F1' COMP_ID = 'Comp 1' FIRE_ID = 'F1_fire' LOCATION = 2.5, 2.5 /
+&CHEM ID = 'F1_fire' CARBON = 1 HYDROGEN = 4 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 300 AREA = 0.5 /
+&TAIL /

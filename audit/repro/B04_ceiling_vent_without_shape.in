@@ -1,0 +1,8 @@
+&HEAD VERSION = 7500, TITLE = 'ceiling vent without SHAPE' /
+!! Audit B04 - ceiling vent without SHAPE (guide default ROUND) is rejected, and the error message itself aborts.
+!! Observed: Fortran runtime error, Expected INTEGER for item 4 in formatted transfer, at input_namelist.f90:1816; nothing written to the log.
+&TIME SIMULATION = 60 PRINT = 60 SMOKEVIEW = 60 SPREADSHEET = 60 /
+&COMP ID = 'Lower' DEPTH = 5 HEIGHT = 3 WIDTH = 5 FLOW_COEFFICIENT = 0 /
+&COMP ID = 'Upper' DEPTH = 5 HEIGHT = 3 WIDTH = 5 ORIGIN = 0, 0, 3 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'CEILING' ID = 'V1' COMP_IDS = 'Upper', 'Lower' AREA = 1 /
+&TAIL /

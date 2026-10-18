@@ -1,0 +1,15 @@
+&HEAD VERSION = 7700, TITLE = 'Radiant heat FED at a target facing a steady fire' /
+!! Audit A06 - radiant heat FED evaluates (4.2 q)**1.9 instead of q**1.9/4.2 (target.f90:142).
+!! Steady 500 kW fire, target 1.5 m away facing the fire, spreadsheet every 1 s.
+!! Expected TRGDFEDH_1 per 1 s step at q = 5.86 kW/m2: (1/60)(q**1.9/4.2 + T**3.61/4.1E8) = 0.114.
+!! Observed on master: 7.33 per step (factor 64); TRGFEDH_1 reaches 219 after 30 s.
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 1 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MISC MAX_TIME_STEP = 0.5 /
+&MATL ID = 'STEEL' MATERIAL = 'Steel' CONDUCTIVITY = 48 DENSITY = 7854 SPECIFIC_HEAT = 0.559, THICKNESS = 0.005 EMISSIVITY = 0.9 /
+&COMP ID = 'Hall' DEPTH = 20 HEIGHT = 6 WIDTH = 20 CEILING_MATL_ID = 'OFF' WALL_MATL_ID = 'OFF' FLOOR_MATL_ID = 'OFF' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Hall' 'OUTSIDE', BOTTOM = 0 HEIGHT = 3, WIDTH = 4 FACE = 'FRONT' OFFSET = 8 /
+&FIRE ID = 'Fire' COMP_ID = 'Hall', FIRE_ID = 'Fuel' LOCATION = 10, 10 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 500 AREA = 0.5 /
+&DEVC ID = 'Person' COMP_ID = 'Hall' LOCATION = 11.5, 10, 0.5 TYPE = 'PLATE' MATL_ID = 'STEEL' NORMAL = -1, 0, 0 /
+&TAIL /

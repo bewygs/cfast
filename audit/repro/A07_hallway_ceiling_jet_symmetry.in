@@ -1,0 +1,17 @@
+&HEAD VERSION = 7700, TITLE = 'Corridor ceiling jet: targets mirrored about the fire' /
+!! Audit A07 - corridor (HALL) correlation applied only on the positive side of the fire (fire.f90:928-932).
+!! Targets and heat detectors mirrored 8 m either side of the fire.
+!! Expected: identical temperatures and activation times.
+!! Observed on master: TRGGAST 71.4 C versus 65.3 C at 30 s; detectors activate at 109 s and 149 s. With abs(): both 109 s.
+&TIME SIMULATION = 300 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'GYP' MATERIAL = 'Gypsum' CONDUCTIVITY = 0.16 DENSITY = 480 SPECIFIC_HEAT = 1, THICKNESS = 0.016 EMISSIVITY = 0.9 /
+&COMP ID = 'Corridor' DEPTH = 30 HEIGHT = 3 WIDTH = 2.4 CEILING_MATL_ID = 'GYP' WALL_MATL_ID = 'GYP' FLOOR_MATL_ID = 'GYP' ORIGIN = 0, 0, 0 HALL = .TRUE. FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Corridor' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1 FACE = 'RIGHT' OFFSET = 14.5 /
+&FIRE ID = 'Fire' COMP_ID = 'Corridor', FIRE_ID = 'Fuel' LOCATION = 1.2, 15 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 200 AREA = 0.25 /
+&DEVC ID = 'Plus8' COMP_ID = 'Corridor' LOCATION = 1.2, 23, 2.95 TYPE = 'PLATE' MATL_ID = 'GYP' SURFACE_ORIENTATION = 'FLOOR' /
+&DEVC ID = 'Minus8' COMP_ID = 'Corridor' LOCATION = 1.2, 7, 2.95 TYPE = 'PLATE' MATL_ID = 'GYP' SURFACE_ORIENTATION = 'FLOOR' /
+&DEVC ID = 'HD_Plus8' COMP_ID = 'Corridor' LOCATION = 1.2, 23, 2.95 TYPE = 'HEAT_DETECTOR' SETPOINT = 57 RTI = 100 /
+&DEVC ID = 'HD_Minus8' COMP_ID = 'Corridor' LOCATION = 1.2, 7, 2.95 TYPE = 'HEAT_DETECTOR' SETPOINT = 57 RTI = 100 /
+&TAIL /

@@ -1,0 +1,19 @@
+&HEAD VERSION = 7500, TITLE = 'Dual smoke detector obscuration output' /
+!! Audit A14 - SENSOD for a dual-threshold smoke detector reports the flaming component only (outputspreadsheet.f90:1529).
+!! Single and dual detectors at the same location, smoldering fire.
+!! Expected: SENSOD_2 = SENSOD_1 (0.120 and 0.194 at 100 s and 200 s, as printed in the .out file).
+!! Observed on master: SENSOD_2 = 0.
+&TIME SIMULATION = 300 PRINT = 100 SMOKEVIEW = 100 SPREADSHEET = 100 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'CONCRETE' CONDUCTIVITY = 1.75 DENSITY = 2200 SPECIFIC_HEAT = 1, THICKNESS = 0.15 EMISSIVITY = 0.94 /
+&COMP ID = 'Comp 1' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'CONCRETE' WALL_MATL_ID = 'CONCRETE' FLOOR_MATL_ID = 'CONCRETE' ORIGIN = 0, 0, 0 /
+&VENT TYPE = 'WALL' ID = 'WV1' COMP_IDS = 'Comp 1' 'OUTSIDE' TOP = 2, BOTTOM = 0, WIDTH = 1 FACE = 'FRONT' OFFSET = 2 /
+&FIRE ID = 'F1' COMP_ID = 'Comp 1', FIRE_ID = 'F1_Fire' LOCATION = 2.5, 2.5 /
+&CHEM ID = 'F1_Fire' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.33 FLAMING_TRANSITION_TIME = 10000 /
+&TABL ID = 'F1_Fire' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA', 'CO_YIELD', 'SOOT_YIELD', 'HCN_YIELD', 'HCL_YIELD', 'TRACE_YIELD' /
+&TABL ID = 'F1_Fire', DATA = 0, 0, 0, 0.1, 0.01, 0.1, 0, 0, 0 /
+&TABL ID = 'F1_Fire', DATA = 60, 20, 0, 0.1, 0.01, 0.1, 0, 0, 0 /
+&TABL ID = 'F1_Fire', DATA = 300, 20, 0, 0.1, 0.01, 0.1, 0, 0, 0 /
+&DEVC ID = 'Single' COMP_ID = 'Comp 1' LOCATION = 2, 2, 2.97 TYPE = 'SMOKE_DETECTOR' SETPOINT = 99 /
+&DEVC ID = 'Dual' COMP_ID = 'Comp 1' LOCATION = 2, 2, 2.97 TYPE = 'SMOKE_DETECTOR' SETPOINTS = 99, 99 /
+&TAIL /
