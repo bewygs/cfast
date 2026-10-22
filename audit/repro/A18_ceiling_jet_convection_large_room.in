@@ -1,0 +1,13 @@
+&HEAD VERSION = 7700, TITLE = 'Ceiling jet convection in a large low room' /
+!! Audit A18 - ceiling jet convection: the gas loses lw_eff*q while the whole ceiling receives q (convection.f90:68-76).
+!! Hall 40 m x 40 m x 3 m: LW = 1600 m2 is larger than pi*(4H)**2 = 452 m2, so lw_eff = 452 m2.
+!! Observed on master at 300 s: CEILT_1 33.9 C, ULT_1 29.2 C.
+!! Energy-consistent variant (ceiling flux q*lw_eff/LW): CEILT_1 24.6 C, ULT_1 27.5 C.
+&TIME SIMULATION = 900 PRINT = 300 SMOKEVIEW = 30 SPREADSHEET = 30 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'CONC' MATERIAL = 'Concrete' CONDUCTIVITY = 1.75 DENSITY = 2200 SPECIFIC_HEAT = 1, THICKNESS = 0.15 EMISSIVITY = 0.94 /
+&COMP ID = 'Hall' DEPTH = 40 HEIGHT = 3 WIDTH = 40 CEILING_MATL_ID = 'CONC' WALL_MATL_ID = 'CONC' FLOOR_MATL_ID = 'CONC' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Hall' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 2 FACE = 'FRONT' OFFSET = 19 /
+&FIRE ID = 'Fire' COMP_ID = 'Hall', FIRE_ID = 'Fuel' LOCATION = 20, 20 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 HRR = 1000 AREA = 1 /
+&TAIL /

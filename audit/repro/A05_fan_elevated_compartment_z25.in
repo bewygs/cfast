@@ -1,0 +1,13 @@
+&HEAD VERSION = 7700, TITLE = 'Exhaust fan in a compartment raised by z0' /
+!! Audit A05 - mv_pressure subtracts the compartment elevation a second time on the inside (flowfan.f90:223).
+!! Same room and exhaust fan as A05_fan_elevated_compartment_z0.in, raised to ORIGIN z = 25 m.
+!! The outside diffuser height is the absolute elevation used by the code (25 + 2.5 m, as in VVent_Tests.in),
+!! so both diffusers are at the same elevation in a quiescent isothermal atmosphere.
+!! Expected: fan flow 1.19 kg/s as at z = 0. Observed on master: 0.0039 kg/s (1.032 kg/s at z = 20 m).
+!! With the fix (inside double count removed): 1.192 kg/s.
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&COMP ID = 'Room' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'OFF' WALL_MATL_ID = 'OFF' FLOOR_MATL_ID = 'OFF' ORIGIN = 0, 0, 25 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Room' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1 FACE = 'FRONT' OFFSET = 2 /
+&VENT TYPE = 'MECHANICAL' ID = 'Exhaust' COMP_IDS = 'Room', 'OUTSIDE' AREAS = 0.5, 0.5 HEIGHTS = 2.5, 27.5 FLOW = 1.0 CUTOFFS = 200, 300 OFFSETS = 1, 1 /
+&TAIL /

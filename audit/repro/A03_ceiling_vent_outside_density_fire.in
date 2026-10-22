@@ -1,0 +1,15 @@
+&HEAD VERSION = 7700, TITLE = 'Fire room vented by a roof vent only' /
+!! Audit A03 - companion file: 200 kW fire vented only by a roof vent; master shows no exchange flow (CFT_1_l_inflow_1 = 0).
+!! Observed on master at 590 s: HRR_1 135 kW, HGT_1 0.10 m. With the fix: 200 kW, 0.47 m, exchange inflow 0.257 kg/s.
+&TIME SIMULATION = 600 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'GYP' MATERIAL = 'Gypsum' CONDUCTIVITY = 0.16 DENSITY = 480 SPECIFIC_HEAT = 1, THICKNESS = 0.016 EMISSIVITY = 0.9 /
+&COMP ID = 'Room' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'GYP' WALL_MATL_ID = 'GYP' FLOOR_MATL_ID = 'GYP' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'CEILING' ID = 'Roof' COMP_IDS = 'OUTSIDE', 'Room' AREA = 1, SHAPE = 'SQUARE' OFFSETS = 2.5, 2.5 /
+&FIRE ID = 'Fire' COMP_ID = 'Room', FIRE_ID = 'Fuel' LOCATION = 2.5, 2.5 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
+&TABL ID = 'Fuel' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA' /
+&TABL ID = 'Fuel', DATA = 0, 0, 0, 0.25 /
+&TABL ID = 'Fuel', DATA = 60, 200, 0, 0.25 /
+&TABL ID = 'Fuel', DATA = 600, 200, 0, 0.25 /
+&TAIL /

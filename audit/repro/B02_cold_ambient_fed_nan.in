@@ -1,0 +1,12 @@
+&HEAD VERSION = 7700, TITLE = 'Target in an unheated compartment at -10 C' /
+!! Audit B02 - heat FED raises the gas temperature in Celsius to the power -3.61 (target.f90:140, 143).
+!! Interior and exterior at -10 C (accepted by input checks down to 223.15 K).
+!! Expected: FED_heat stays near 0.
+!! Observed: debug build stops with SIGFPE in pow called from target; -O0 release build writes TRGFEDH_1 = nan from 30 s on.
+&TIME SIMULATION = 60 PRINT = 30 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = -10 EXTERIOR_TEMPERATURE = -10 /
+&MATL ID = 'STEEL' MATERIAL = 'Steel' CONDUCTIVITY = 48 DENSITY = 7854 SPECIFIC_HEAT = 0.559, THICKNESS = 0.005 EMISSIVITY = 0.9 /
+&COMP ID = 'Store' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'OFF' WALL_MATL_ID = 'OFF' FLOOR_MATL_ID = 'OFF' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Store' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1 FACE = 'FRONT' OFFSET = 2 /
+&DEVC ID = 'Targ' COMP_ID = 'Store' LOCATION = 2.5, 2.5, 1.5 TYPE = 'PLATE' MATL_ID = 'STEEL' SURFACE_ORIENTATION = 'CEILING' /
+&TAIL /

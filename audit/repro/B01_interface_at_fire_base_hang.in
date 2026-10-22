@@ -1,0 +1,18 @@
+&HEAD VERSION = 7700, TITLE = 'Elevated fire above the layer interface' /
+!! Audit B01 - run never ends once the layer interface reaches the base of an elevated fire.
+!! Fire base 2.0 m, 0.3 m from the left wall; door soffit 1.2 m. FLOW_COEFFICIENT = 0 to isolate the problem.
+!! Expected: a 600 s simulation finishing in seconds.
+!! Observed on master: progress stops near t = 112.7 s with DASSL steps of about 1E-8 s (above the 1E-9 s stpmin guard), interface at 2.00007 m.
+!! Instrumented do_fire: the lower-plume iteration exits after 5 passes without converging; hrr_lower alternates between about 0.4 kW and 59 kW.
+&TIME SIMULATION = 600 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&MATL ID = 'GYP' MATERIAL = 'Gypsum' CONDUCTIVITY = 0.16 DENSITY = 480 SPECIFIC_HEAT = 1, THICKNESS = 0.016 EMISSIVITY = 0.9 /
+&COMP ID = 'Room' DEPTH = 4 HEIGHT = 3 WIDTH = 4 CEILING_MATL_ID = 'GYP' WALL_MATL_ID = 'GYP' FLOOR_MATL_ID = 'GYP' ORIGIN = 0, 0, 0 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Room' 'OUTSIDE', BOTTOM = 0 HEIGHT = 1.2, WIDTH = 1.0 FACE = 'RIGHT' OFFSET = 1.5 /
+&FIRE ID = 'Fire' COMP_ID = 'Room', FIRE_ID = 'Fuel' LOCATION = 0.3, 2.0 /
+&CHEM ID = 'Fuel' CARBON = 1 CHLORINE = 0 HYDROGEN = 4 NITROGEN = 0 OXYGEN = 0 HEAT_OF_COMBUSTION = 50000 RADIATIVE_FRACTION = 0.35 /
+&TABL ID = 'Fuel' LABELS = 'TIME', 'HRR', 'HEIGHT', 'AREA' /
+&TABL ID = 'Fuel', DATA = 0, 0, 2.0, 0.25 /
+&TABL ID = 'Fuel', DATA = 60, 150, 2.0, 0.25 /
+&TABL ID = 'Fuel', DATA = 600, 150, 2.0, 0.25 /
+&TAIL /

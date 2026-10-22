@@ -1,0 +1,12 @@
+&HEAD VERSION = 7700, TITLE = 'Exhaust fan from a raised compartment, outside height read from the room floor' /
+!! Audit C12 - the outside HEIGHTS value of a mechanical vent is an absolute elevation in the code
+!! (flowfan.f90:225), while the User Guide says "above the floor". Here the user means 2.5 m above the room floor.
+!! Observed on master: 0 kg/s (A05 and C12 combined). With the A05 fix only: 1.032 kg/s, because the code places
+!! the outside diffuser at 2.5 m absolute, 20 m below the inside one, without a duct air column.
+!! With the outside height measured from the room floor (option b of C12): 1.193 kg/s, as at z = 0.
+&TIME SIMULATION = 120 PRINT = 60 SMOKEVIEW = 10 SPREADSHEET = 10 /
+&INIT PRESSURE = 101325 RELATIVE_HUMIDITY = 50 INTERIOR_TEMPERATURE = 20 EXTERIOR_TEMPERATURE = 20 /
+&COMP ID = 'Room' DEPTH = 5 HEIGHT = 3 WIDTH = 5 CEILING_MATL_ID = 'OFF' WALL_MATL_ID = 'OFF' FLOOR_MATL_ID = 'OFF' ORIGIN = 0, 0, 20 FLOW_COEFFICIENT = 0 /
+&VENT TYPE = 'WALL' ID = 'Door' COMP_IDS = 'Room' 'OUTSIDE', BOTTOM = 0 HEIGHT = 2, WIDTH = 1 FACE = 'FRONT' OFFSET = 2 /
+&VENT TYPE = 'MECHANICAL' ID = 'Exhaust' COMP_IDS = 'Room', 'OUTSIDE' AREAS = 0.5, 0.5 HEIGHTS = 2.5, 2.5 FLOW = 1.0 CUTOFFS = 200, 300 OFFSETS = 1, 1 /
+&TAIL /
