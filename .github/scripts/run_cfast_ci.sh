@@ -4,7 +4,9 @@
 # Each results line is: case <TAB> exit code <TAB> first error line (empty on success).
 set -uo pipefail
 [[ $# -ge 4 ]] || { sed -n 2,4p "$0" >&2; exit 2; }
-repo=$(cd "$1" && pwd); exe=$(readlink -f "$2"); suite=$3; results=$(readlink -m "$4"); shift 4
+# Absolute paths without GNU readlink, so the script also runs on macOS.
+repo=$(cd "$1" && pwd); exe=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
+suite=$3; results=$(cd "$(dirname "$4")" && pwd)/$(basename "$4"); shift 4
 [[ -x $exe ]] || { echo "Executable not found: $exe" >&2; exit 2; }
 jobs=$(mktemp); trap 'rm -f "$jobs"' EXIT
 export CFAST_CI_JOBS=$jobs CFAST_CI_SELECTED=" $* "
@@ -13,7 +15,7 @@ export CFAST_CI_JOBS=$jobs CFAST_CI_SELECTED=" $* "
 collect_case() {
    local dir=$2 input=$3
    [[ $CFAST_CI_SELECTED == "  " || $CFAST_CI_SELECTED == *" $dir/$input "* ]] || return 0
-   printf '%s\t%s\n' "$dir" "$input" >> "$CFAST_CI_JOBS"
+   printf '%s/%s\n' "$dir" "$input" >> "$CFAST_CI_JOBS"
 }
 export -f collect_case
 export RUNCFAST=collect_case
@@ -21,7 +23,8 @@ export RUNCFAST=collect_case
 [[ -s $jobs ]] || { echo "No matching cases in $suite: $*" >&2; exit 2; }
 
 run_case() {
-   local dir=$1 input=$2 rc=0 base=${2%.*} error=
+   local dir=${1%/*} input=${1##*/} rc=0 base error=
+   base=${input%.*}
    # Run CFAST directly, as qcfast.sh does locally, so older refs with other launcher defaults behave the same.
    # Each case writes only files named after its input, so cases in the same directory can run concurrently.
    (cd "$dir" && "$CFAST_CI_EXE" "$input" > "$base.log" 2> "$base.err") || rc=$?
@@ -34,10 +37,10 @@ run_case() {
 export -f run_case
 export CFAST_CI_EXE=$exe
 cd "$repo/$suite"
-xargs -a "$jobs" -d '\n' -P "$(nproc)" -I{} bash -c 'IFS=$'"'"'\t'"'"' read -r d i <<< "$1"; run_case "$d" "$i"' _ {} \
+tr '\n' '\0' < "$jobs" | xargs -0 -n 1 -P "$(getconf _NPROCESSORS_ONLN)" bash -c 'run_case "$1"' _ \
    | sort > "$results"
 
-total=$(wc -l < "$results"); failed=$(awk -F'\t' '$2 != 0' "$results" | wc -l)
+total=$(awk 'END {print NR}' "$results"); failed=$(awk -F'\t' '$2 != 0 {n++} END {print n + 0}' "$results")
 awk -F'\t' '$2 != 0 {printf "FAIL (exit %s) %s: %s\n", $2, $1, $3}' "$results"
 echo "$suite: $((total - failed))/$total cases passed with $exe"
-[[ $failed == 0 ]]
+(( failed == 0 ))

@@ -1,4 +1,4 @@
-# Demo: build CFAST with several Fortran compilers and run the Verification cases on each push, PR or selected ref.
+# Demo: build CFAST as it is distributed and run the Verification cases on each PR or selected ref.
 # Validation cases are run only when the tested ref changes their input files.
 name: CFAST verification
 
@@ -65,35 +65,41 @@ jobs:
   test:
     name: ${{ matrix.target.label }} / ${{ matrix.config.name }}
     needs: targets
-    runs-on: ubuntu-24.04
-    container: ${{ matrix.config.container }}
+    runs-on: ${{ matrix.config.os }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.targets.outputs.matrix) }}
+        # The builds CFAST distributes (Build/bundle) or runs nightly (cfastbot), plus one check build.
         config:
-          - { id: gfortran-ubuntu, name: 'gfortran (Ubuntu 24.04)', container: '', make: gnu_linux, fflags: '' }
-          - { id: gfortran16-fedora, name: 'gfortran 16 (Fedora 44)', container: 'fedora:44', make: gnu_linux, fflags: '' }
-          # Every uninitialized integer local starts at 1, so flags such as abort_vent read as set.
-          # The debug value -999999 hides this kind of bug because the code tests for 1.
-          - { id: gfortran-init1, name: 'gfortran -finit-integer=1', container: '', make: gnu_linux,
+          - { id: gnu-linux, name: 'Linux gfortran', os: ubuntu-24.04, make: gnu_linux, exe: cfast8_linux }
+          # cfastbot makes the guide figures from its Linux Intel run, so the Verification plots come from this build.
+          - { id: intel-linux, name: 'Linux Intel ifx', os: ubuntu-24.04, make: intel_linux, exe: cfast8_linux, plots: true }
+          - { id: gnu-macos, name: 'macOS gfortran', os: macos-15, make: gnu_macos, exe: cfast8_macos }
+          # Every uninitialized integer local starts at 1, so a flag that is never set reads as set.
+          # The debug builds use -finit-integer=-999999, which hides flags tested against 1.
+          - { id: uninit-check, name: 'gfortran uninitialized check', os: ubuntu-24.04, make: gnu_linux, exe: cfast8_linux,
               fflags: '-O0 -finit-integer=1 $(GITINFOGNU)' }
-          - { id: ifx, name: 'Intel ifx', container: '', make: intel_linux, fflags: '' }
     steps:
-      - name: Install Fedora packages
-        if: matrix.config.container != ''
-        run: dnf install -y --setopt=install_weak_deps=False gcc-gfortran make git jq findutils diffutils which
-
       - name: Install Intel oneAPI Fortran
-        if: matrix.config.id == 'ifx'
+        if: matrix.config.make == 'intel_linux'
         run: |
           wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
             | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
           echo 'deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main' \
             | sudo tee /etc/apt/sources.list.d/oneAPI.list
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends intel-oneapi-compiler-fortran
+          sudo apt-get install -y -q intel-oneapi-compiler-fortran
+
+      # The makefile calls gfortran; the macOS runner only ships versioned Homebrew compilers.
+      - name: Select gfortran on macOS
+        if: runner.os == 'macOS'
+        run: |
+          fc=$(ls "$(brew --prefix)"/bin/gfortran-[0-9]* 2> /dev/null | sort -t- -k2 -n | tail -1)
+          if [[ -z $fc ]]; then brew install gcc; fc=$(brew --prefix)/bin/gfortran; fi
+          mkdir -p "$HOME/bin" && ln -sf "$fc" "$HOME/bin/gfortran"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
 
       - name: Check out CI scripts
         uses: actions/checkout@v4
@@ -105,8 +111,7 @@ jobs:
         env:
           REF: ${{ matrix.target.ref }}
         run: |
-          git config --global --add safe.directory '*'
-          git init -q src && cd src
+          git init -q cfast && cd cfast
           # Blobless fetch keeps the history needed to find the files changed since upstream master.
           case $REF in
             pr/*) git fetch -q --filter=blob:none "$UPSTREAM" "pull/${REF#pr/}/head";;
@@ -118,7 +123,7 @@ jobs:
           echo "Testing $(git log -1 --format='%h %s')"
 
       - name: Build CFAST
-        working-directory: src/Build/CFAST/${{ matrix.config.make }}
+        working-directory: cfast/Build/CFAST/${{ matrix.config.make }}
         env:
           TARGET: ${{ matrix.config.make }}
           FFLAGS_OVERRIDE: ${{ matrix.config.fflags }}
@@ -130,32 +135,73 @@ jobs:
             make -f ../makefile clean
             make -f ../makefile "$TARGET" FFLAGS="$FFLAGS_OVERRIDE"
           fi
-          if [[ $TARGET == intel_linux ]]; then ifx --version | head -1; else gfortran --version | head -1; fi
-          ls -l cfast8_linux
+          if [[ $TARGET == intel_* ]]; then ifx --version | head -1; else gfortran --version | head -1; fi
 
       - name: Run Verification cases
         id: verification
         continue-on-error: true
         env:
           TARGET: ${{ matrix.config.make }}
+          EXE: cfast/Build/CFAST/${{ matrix.config.make }}/${{ matrix.config.exe }}
         run: |
           [[ $TARGET != intel_linux ]] || source /opt/intel/oneapi/setvars.sh > /dev/null
-          ci/.github/scripts/run_cfast_ci.sh src "src/Build/CFAST/$TARGET/cfast8_linux" Verification verification.tsv
+          ci/.github/scripts/run_cfast_ci.sh cfast "$EXE" Verification verification.tsv
 
       - name: Run changed Validation cases
         id: validation
         continue-on-error: true
         env:
           TARGET: ${{ matrix.config.make }}
+          EXE: cfast/Build/CFAST/${{ matrix.config.make }}/${{ matrix.config.exe }}
         run: |
           [[ $TARGET != intel_linux ]] || source /opt/intel/oneapi/setvars.sh > /dev/null
-          cd src
-          cases=$(git diff --name-only --diff-filter=AM "$(git merge-base HEAD upstream-master)" HEAD -- 'Validation/*.in' \
-                  | sed 's#^Validation/##')
-          cd ..
+          cases=$(cd cfast && git diff --name-only --diff-filter=AM "$(git merge-base HEAD upstream-master)" HEAD \
+                  -- 'Validation/*.in' | sed 's#^Validation/##')
           if [[ -z $cases ]]; then echo 'No Validation inputs changed.'; : > validation.tsv; exit 0; fi
           # Changed inputs that are not listed in Validation/scripts/CFAST_Cases.sh are skipped.
-          ci/.github/scripts/run_cfast_ci.sh src "src/Build/CFAST/$TARGET/cfast8_linux" Validation validation.tsv $cases
+          ci/.github/scripts/run_cfast_ci.sh cfast "$EXE" Validation validation.tsv $cases
+
+      # Same plotting script and Python environment as cfastbot stage 5; fdsplotlib comes from the fds repository.
+      - name: Check out fdsplotlib
+        if: matrix.config.plots
+        uses: actions/checkout@v4
+        with:
+          repository: firemodels/fds
+          path: fds
+          sparse-checkout: Utilities/Python
+
+      - uses: actions/setup-python@v5
+        if: matrix.config.plots
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: cfast/.github/requirements.txt
+
+      - name: Make Verification plots
+        id: plots
+        if: matrix.config.plots
+        continue-on-error: true
+        shell: bash
+        env:
+          LABEL: ${{ matrix.target.label }}
+        run: |
+          source cfast/Utilities/CI/setup_python.sh
+          setup_cfast_python "$GITHUB_WORKSPACE"
+          (cd cfast/Utilities/Python && "$CFAST_PYTHON" CFAST_verification_script.py > plots.log 2>&1) || true
+          # Report the error-tolerance check of every plotted quantity, as cfastbot's guides do.
+          mkdir -p results
+          report=results/tolerance-${{ strategy.job-index }}.md
+          printf '### Verification tolerance: %s, ${{ matrix.config.name }}\n\n' "$LABEL" > "$report"
+          "$CFAST_PYTHON" ci/.github/scripts/verification_tolerance.py cfast out-of-tolerance | tee -a "$report"
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.config.plots && steps.plots.outcome != 'skipped'
+        with:
+          name: out-of-tolerance-figures-${{ strategy.job-index }}
+          path: |
+            out-of-tolerance/
+            cfast/Utilities/Python/plots.log
+          if-no-files-found: ignore
 
       - name: Save results
         if: always()
@@ -165,9 +211,9 @@ jobs:
           CONFIG_ID: ${{ matrix.config.id }}
           REF: ${{ matrix.target.ref }}
         run: |
-          mkdir -p results
+          mkdir -p results logs
           name=$(printf '%s__%s' "$REF" "$CONFIG_ID" | tr -c 'A-Za-z0-9_.-' '_')
-          sha=$(git -C src rev-parse --short HEAD 2> /dev/null || echo '?')
+          sha=$(git -C cfast rev-parse --short HEAD 2> /dev/null || echo '?')
           for suite in verification validation; do
             [[ -f $suite.tsv ]] || continue
             awk -F'\t' -v OFS='\t' -v l="$LABEL ($sha)" -v c="$CONFIG" -v s="$suite" '{print l, c, s, $0}' $suite.tsv
@@ -175,7 +221,9 @@ jobs:
           # Keep the logs of failed cases only.
           awk -F'\t' '$5 != 0 {print ($3 == "verification" ? "Verification/" : "Validation/") $4}' "results/$name.tsv" \
             | while read -r input; do
-                for f in "src/${input%.*}".{log,err}; do [[ ! -f $f ]] || install -D "$f" "logs/${f#src/}"; done
+                for f in "cfast/${input%.*}.log" "cfast/${input%.*}.err"; do
+                  [[ ! -f $f ]] || { mkdir -p "logs/$(dirname "${f#cfast/}")"; cp "$f" "logs/${f#cfast/}"; }
+                done
               done
 
       - uses: actions/upload-artifact@v4
@@ -188,7 +236,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Fail on case failures
-        if: steps.verification.outcome == 'failure' || steps.validation.outcome == 'failure'
+        if: steps.verification.outcome == 'failure' || steps.validation.outcome == 'failure' || steps.plots.outcome == 'failure'
         run: exit 1
 
   summary:
@@ -196,18 +244,21 @@ jobs:
     needs: test
     if: always()
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/download-artifact@v4
         with:
           pattern: results-*
           merge-multiple: true
-      - name: Write summary table
+      - name: Write report
         run: |
           cat results/*.tsv 2> /dev/null > all.tsv || true
           {
-            echo '## CFAST cases'
+            echo '## CFAST verification'
             echo
-            echo 'Passed/run per ref and compiler. Validation runs only the inputs changed by the ref.'
+            echo 'Cases passed/run per ref and build. Validation runs only the inputs changed by the ref.'
             echo
             awk -F'\t' '
               { key = $1 SUBSEP $2 SUBSEP $3; run[key]++; if ($5 == 0) ok[key]++
@@ -218,12 +269,12 @@ jobs:
                 printf "| Ref | Suite |"; for (j = 1; j <= nc; j++) printf " %s |", cfgs[j]; print ""
                 printf "|---|---|"; for (j = 1; j <= nc; j++) printf "---|"; print ""
                 for (i = 1; i <= nr; i++) for (s = 1; s <= 2; s++) {
-                  suite = (s == 1 ? "verification" : "validation"); line = ""; any = 0
+                  suite = (s == 1 ? "Verification" : "Validation"); line = ""; any = 0
                   for (j = 1; j <= nc; j++) {
-                    key = refs[i] SUBSEP cfgs[j] SUBSEP suite
-                    if (key in run) { any = 1; mark = (ok[key] == run[key] ? "✅" : "❌")
-                      line = line sprintf(" %s %d/%d |", mark, ok[key] + 0, run[key]) }
-                    else line = line " – |"
+                    key = refs[i] SUBSEP cfgs[j] SUBSEP tolower(suite)
+                    if (key in run) { any = 1
+                      line = line sprintf(" %d/%d%s |", ok[key] + 0, run[key], (ok[key] == run[key] ? "" : " failed")) }
+                    else line = line " - |"
                   }
                   if (any) printf "| %s | %s |%s\n", refs[i], suite, line
                 } }' all.tsv
@@ -231,10 +282,32 @@ jobs:
               echo
               echo '<details><summary>Failed cases</summary>'
               echo
-              echo '| Ref | Compiler | Case | Exit | Message |'
+              echo '| Ref | Build | Case | Exit | Message |'
               echo '|---|---|---|---|---|'
               awk -F'\t' '$5 != 0 { gsub(/\|/, "\\|", $6); printf "| %s | %s | `%s` | %s | %s |\n", $1, $2, $4, $5, $6 }' all.tsv
               echo
               echo '</details>'
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
+            for f in results/tolerance-*.md; do [[ ! -f $f ]] || { echo; cat "$f"; }; done
+            echo
+            echo "[Logs and figures]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # One comment per PR, updated on each run, like coverage bots.
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          marker='<!-- cfast-verification-report -->'
+          body="$marker"$'\n'"$(cat report.md)"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+                 --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | tail -1)
+          # A PR from another fork gets a read-only token; the report stays in the run summary.
+          if [[ -n $id ]]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh pr comment "$PR" -R "$GITHUB_REPOSITORY" --body "$body"
+          fi || echo '::warning::Could not comment on the PR; see the run summary.'
