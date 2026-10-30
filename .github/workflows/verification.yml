@@ -72,8 +72,6 @@ jobs:
       fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.targets.outputs.matrix) }}
-        # parallel: concurrent cases (empty = nproc). shard: i/n slice of the case list.
-        # bench entries only measure timing; their results are not counted in the summary.
         config:
           - { id: gfortran-ubuntu, name: 'gfortran (Ubuntu 24.04)', container: '', make: gnu_linux, fflags: '' }
           - { id: gfortran16-fedora, name: 'gfortran 16 (Fedora 44)', container: 'fedora:44', make: gnu_linux, fflags: '' }
@@ -82,38 +80,13 @@ jobs:
           - { id: gfortran-init1, name: 'gfortran -finit-integer=1', container: '', make: gnu_linux,
               fflags: '-O0 -finit-integer=1 $(GITINFOGNU)' }
           - { id: ifx, name: 'Intel ifx', container: '', make: intel_linux, fflags: '' }
-          - { id: bench-sequential, name: 'bench: gfortran, 1 case at a time', container: '', make: gnu_linux, fflags: '',
-              bench: true, parallel: '1' }
-          - { id: bench-shard1, name: 'bench: gfortran, shard 1/2', container: '', make: gnu_linux, fflags: '',
-              bench: true, shard: '1/2' }
-          - { id: bench-shard2, name: 'bench: gfortran, shard 2/2', container: '', make: gnu_linux, fflags: '',
-              bench: true, shard: '2/2' }
-    env:
-      CFAST_CI_PARALLEL: ${{ matrix.config.parallel }}
-      CFAST_CI_SHARD: ${{ matrix.config.shard }}
     steps:
-      - name: Start timer
-        run: echo "T0=$(date +%s)" >> "$GITHUB_ENV"
-
       - name: Install Fedora packages
         if: matrix.config.container != ''
         run: dnf install -y --setopt=install_weak_deps=False gcc-gfortran make git jq findutils diffutils which
 
-      # The compiler is cached as a directory, as fortran-lang/setup-fortran does; apt only runs on a cache miss.
-      - name: Prepare oneAPI directory
-        if: matrix.config.id == 'ifx'
-        run: sudo mkdir -p /opt/intel && sudo chown "$USER" /opt/intel
-
-      - name: Restore oneAPI cache
-        if: matrix.config.id == 'ifx'
-        id: oneapi
-        uses: actions/cache@v4
-        with:
-          path: /opt/intel/oneapi
-          key: oneapi-fortran-${{ runner.os }}-${{ runner.arch }}-v1
-
       - name: Install Intel oneAPI Fortran
-        if: matrix.config.id == 'ifx' && steps.oneapi.outputs.cache-hit != 'true'
+        if: matrix.config.id == 'ifx'
         run: |
           wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
             | sudo gpg --dearmor -o /usr/share/keyrings/oneapi-archive-keyring.gpg
@@ -143,7 +116,6 @@ jobs:
           git checkout -q FETCH_HEAD
           git fetch -q --filter=blob:none "$UPSTREAM" master:upstream-master
           echo "Testing $(git log -1 --format='%h %s')"
-          echo "SETUP_S=$(( $(date +%s) - T0 ))" >> "$GITHUB_ENV"
 
       - name: Build CFAST
         working-directory: src/Build/CFAST/${{ matrix.config.make }}
@@ -160,7 +132,6 @@ jobs:
           fi
           if [[ $TARGET == intel_linux ]]; then ifx --version | head -1; else gfortran --version | head -1; fi
           ls -l cfast8_linux
-          echo "BUILD_S=$SECONDS" >> "$GITHUB_ENV"
 
       - name: Run Verification cases
         id: verification
@@ -169,19 +140,15 @@ jobs:
           TARGET: ${{ matrix.config.make }}
         run: |
           [[ $TARGET != intel_linux ]] || source /opt/intel/oneapi/setvars.sh > /dev/null
-          trap 'echo "VERIFICATION_S=$SECONDS" >> "$GITHUB_ENV"' EXIT
-          echo "Running on $(nproc) CPUs"
           ci/.github/scripts/run_cfast_ci.sh src "src/Build/CFAST/$TARGET/cfast8_linux" Verification verification.tsv
 
       - name: Run changed Validation cases
         id: validation
-        if: ${{ !matrix.config.bench }}
         continue-on-error: true
         env:
           TARGET: ${{ matrix.config.make }}
         run: |
           [[ $TARGET != intel_linux ]] || source /opt/intel/oneapi/setvars.sh > /dev/null
-          trap 'echo "VALIDATION_S=$SECONDS" >> "$GITHUB_ENV"' EXIT
           cd src
           cases=$(git diff --name-only --diff-filter=AM "$(git merge-base HEAD upstream-master)" HEAD -- 'Validation/*.in' \
                   | sed 's#^Validation/##')
@@ -197,18 +164,10 @@ jobs:
           CONFIG: ${{ matrix.config.name }}
           CONFIG_ID: ${{ matrix.config.id }}
           REF: ${{ matrix.target.ref }}
-          BENCH: ${{ matrix.config.bench }}
-          ONEAPI_CACHE: ${{ steps.oneapi.outputs.cache-hit }}
         run: |
-          mkdir -p results timing
+          mkdir -p results
           name=$(printf '%s__%s' "$REF" "$CONFIG_ID" | tr -c 'A-Za-z0-9_.-' '_')
           sha=$(git -C src rev-parse --short HEAD 2> /dev/null || echo '?')
-          ncases=$(cat verification.tsv validation.tsv 2> /dev/null | wc -l)
-          note=; [[ $CONFIG_ID != ifx ]] || note=$([[ $ONEAPI_CACHE == true ]] && echo 'oneAPI from cache' || echo 'oneAPI from apt')
-          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$LABEL ($sha)" "$CONFIG" "${SETUP_S:-}" "${BUILD_S:-}" \
-            "${VERIFICATION_S:-}" "${VALIDATION_S:-}" "$ncases" "$note" > "timing/$name.tsv"
-          # Bench jobs repeat the gfortran-ubuntu cases, so only their timing is kept.
-          [[ $BENCH != true ]] || exit 0
           for suite in verification validation; do
             [[ -f $suite.tsv ]] || continue
             awk -F'\t' -v OFS='\t' -v l="$LABEL ($sha)" -v c="$CONFIG" -v s="$suite" '{print l, c, s, $0}' $suite.tsv
@@ -225,12 +184,11 @@ jobs:
           name: results-${{ strategy.job-index }}
           path: |
             results/
-            timing/
             logs/
           if-no-files-found: ignore
 
       - name: Fail on case failures
-        if: ${{ !matrix.config.bench && (steps.verification.outcome == 'failure' || steps.validation.outcome == 'failure') }}
+        if: steps.verification.outcome == 'failure' || steps.validation.outcome == 'failure'
         run: exit 1
 
   summary:
@@ -279,14 +237,4 @@ jobs:
               echo
               echo '</details>'
             fi
-            echo
-            echo '## Timing (seconds, inside the job)'
-            echo
-            echo 'Setup covers package or compiler install, checkout and fetch, but not the runner or container start;'
-            echo 'see the job durations in the run for the full wall time.'
-            echo
-            echo '| Ref | Config | Setup | Build | Verification | Validation | Cases | Note |'
-            echo '|---|---|---|---|---|---|---|---|'
-            cat timing/*.tsv 2> /dev/null | sort -t$'\t' -k1,1 -k2,2 \
-              | awk -F'\t' '{ printf "| %s | %s | %s | %s | %s | %s | %s | %s |\n", $1, $2, $3, $4, $5, ($6 == "" ? "–" : $6), $7, $8 }'
           } >> "$GITHUB_STEP_SUMMARY"
